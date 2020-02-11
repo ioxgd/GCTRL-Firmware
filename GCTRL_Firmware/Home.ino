@@ -2,14 +2,6 @@
 
 LV_FONT_DECLARE(supermarket_40);
 
-/* ========== img1 header ========== */
-lv_obj_t* img1;
-/* ====== END of img1 header ====== */
-
-/* ========== img2 header ========== */
-lv_obj_t* img2;
-/* ====== END of img2 header ====== */
-
 lv_obj_t* homeScreen;
 
 extern lv_obj_t* selectFileScreen;
@@ -47,6 +39,8 @@ void home_page() {
   /* ====== END of txt1 ====== */
   
   /* ========== img1 ========== */
+  lv_obj_t* img1;
+  
   img1 = lv_img_create(homeScreen, NULL);
   lv_img_set_src(img1, &sd_card_icon);
   lv_obj_align(img1, NULL, LV_ALIGN_IN_TOP_MID, 210, 110);
@@ -62,6 +56,8 @@ void home_page() {
   /* ====== END of img1 ====== */
   
   /* ========== img2 ========== */
+  lv_obj_t* img2;
+
   img2 = lv_img_create(homeScreen, NULL);
   lv_img_set_src(img2, &joy_icon);
   lv_obj_align(img2, NULL, LV_ALIGN_IN_TOP_MID, -210, 110);

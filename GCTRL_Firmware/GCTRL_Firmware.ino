@@ -6,8 +6,19 @@ extern lv_obj_t* welcomeScreen;
 extern lv_obj_t* homeScreen;
 extern lv_obj_t* previewScreen;
 extern lv_obj_t* selectFileScreen;
+extern lv_obj_t* processScreen;
 
 extern lv_obj_t* objCanvas;
+extern lv_obj_t* txtProgress;
+extern lv_obj_t* progressbar;
+
+extern bool previewFlag;
+extern bool cancelFlag;
+
+extern lv_obj_t* btnCancel;
+extern lv_obj_t* txtDoing;
+extern lv_obj_t* txtOK;
+extern lv_obj_t* img1;
 
 extern String filePath;
 
@@ -83,19 +94,36 @@ void loop() {
     if (!pageDidMount) {
       File myFile = SD.open(filePath);
       if (myFile) {
-        char *fileContentBuff = (char*)malloc(myFile.size() + 1);
-        memset(fileContentBuff, 0, myFile.size() + 1);
-
-        uint32_t inx = 0;
-        while (myFile.available()) {
-          fileContentBuff[inx++] = myFile.read();
-        }
-
-        gcode_drew_line(fileContentBuff, objCanvas);
-
-        free(fileContentBuff);
+        gcode_drew_line_file(myFile, objCanvas);
         myFile.close();
       }
+
+      pageDidMount = true;
+    }
+  }
+  if (showPage == processScreen) {
+    if (!pageDidMount) {
+      File myFile = SD.open(filePath);
+      if (myFile) {
+        gcode_do_job_file(myFile, previewFlag, &cancelFlag, [](int progress) {
+          Serial.print(progress);
+          Serial.println('%');
+          lv_label_set_text(txtProgress, String(String(progress) + "%").c_str());
+          lv_obj_set_size(progressbar, (progress / 100.0) * 600.0, 60);
+        });
+        myFile.close();
+      }
+
+      if (cancelFlag) {
+        lv_load_page(previewScreen);
+      } else {
+        lv_obj_set_hidden(btnCancel, true);
+        lv_obj_set_hidden(txtDoing, true);
+        lv_obj_set_hidden(img1, false);
+        lv_obj_set_hidden(txtOK, false);
+      }
+
+      pageDidMount = true;
     }
   }
 

@@ -13,7 +13,9 @@ LV_IMG_DECLARE(house_icon);
 LV_IMG_DECLARE(house_mini_icon);
 
 extern void gcode_drew_line(char *gcode, lv_obj_t *objCanvas, float scale, float offsetX, float offsetY);
-extern char test_gcode[];
+// extern char test_gcode[];
+
+bool previewFlag = false;
 
 void preview_page() {
   previewScreen = lv_obj_create(NULL, NULL);
@@ -89,8 +91,9 @@ void preview_page() {
   btn1 = lv_btn_create(previewScreen, NULL);
   lv_obj_set_event_cb(btn1, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      previewFlag = true;
+      lv_load_page(processScreen);
     }
   });
   lv_btn_set_style(btn1, LV_BTN_STATE_REL, &btn1_rel_style);
@@ -132,8 +135,9 @@ void preview_page() {
   btn2 = lv_btn_create(previewScreen, NULL);
   lv_obj_set_event_cb(btn2, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      previewFlag = false;
+      lv_load_page(processScreen);
     }
   });
   lv_btn_set_style(btn2, LV_BTN_STATE_REL, &btn2_rel_style);
