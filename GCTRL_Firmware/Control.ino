@@ -43,8 +43,8 @@ void control_page() {
   btn1 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn1, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      moveMotorX(100, 0, 80);
     }
   });
   lv_btn_set_style(btn1, LV_BTN_STATE_REL, &btn1_rel_style);
@@ -86,8 +86,8 @@ void control_page() {
   btn2 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn2, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      moveMotorX(100, 1, 80);
     }
   });
   lv_btn_set_style(btn2, LV_BTN_STATE_REL, &btn2_rel_style);
@@ -129,8 +129,8 @@ void control_page() {
   btn3 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn3, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      moveMotorY(100, 0, 80);
     }
   });
   lv_btn_set_style(btn3, LV_BTN_STATE_REL, &btn3_rel_style);
@@ -172,8 +172,8 @@ void control_page() {
   btn4 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn4, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
       gd.beep();
+      moveMotorY(100, 1, 80);
     }
   });
   lv_btn_set_style(btn4, LV_BTN_STATE_REL, &btn4_rel_style);

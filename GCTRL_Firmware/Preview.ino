@@ -7,6 +7,8 @@ lv_obj_t* previewScreen;
 
 extern lv_obj_t* homeScreen;
 
+lv_obj_t* objCanvas;
+
 LV_IMG_DECLARE(house_icon);
 LV_IMG_DECLARE(house_mini_icon);
 
@@ -151,7 +153,6 @@ void preview_page() {
   
   /* ========== objCanvas ========== */
   static lv_style_t objCanvas_style;
-  lv_obj_t* objCanvas;
   
   lv_style_copy(&objCanvas_style, &lv_style_plain);
   objCanvas_style.body.main_color = lv_color_hex(0xFFFFFF);
@@ -190,5 +191,5 @@ void preview_page() {
   lv_obj_align(line1, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
   */
   
-  gcode_drew_line(test_gcode, objCanvas);
+  // gcode_drew_line(test_gcode, objCanvas);
 }

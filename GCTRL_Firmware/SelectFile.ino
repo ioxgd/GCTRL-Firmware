@@ -13,6 +13,9 @@ LV_IMG_DECLARE(folder_icon);
 LV_IMG_DECLARE(house_icon);
 LV_IMG_DECLARE(house_mini_icon);
 
+String nowPath;
+String filePath;
+
 void select_file_page() {
   selectFileScreen = lv_obj_create(NULL, NULL);
   
@@ -50,6 +53,7 @@ void select_file_page() {
   lv_obj_set_click(img4, true);
   lv_obj_set_event_cb(img4, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
+      nowPath = "";
       lv_load_page(homeScreen);
       gd.beep();
     }
@@ -119,8 +123,6 @@ lv_obj_t* objLabelFileFolderList[100];
 String objFileFolderListName[100];
 int objFileFolderListCount = 0;
 
-String nowPath;
-
 int findObjectImgIndex(lv_obj_t* obj) {
   for(int i=0;i<100;i++) {
     if (obj == objImgFileFolderList[i]) return i;
@@ -131,16 +133,21 @@ int findObjectImgIndex(lv_obj_t* obj) {
 
 void file_cb(lv_obj_t* obj, lv_event_t event) {
   if(event == LV_EVENT_CLICKED) {
+    gd.beep();
+
     int index = findObjectImgIndex(obj);
     if (index == -1) return; // some thing wrong
 
-    String filePath = nowPath + (nowPath.endsWith("/") ? "" : "/") + objFileFolderListName[index];
+    filePath = nowPath + (nowPath.endsWith("/") ? "" : "/") + objFileFolderListName[index];
     lv_load_page(previewScreen);
+    nowPath = "";
   }
 }
 
 void folder_cb(lv_obj_t* obj, lv_event_t event) {
   if(event == LV_EVENT_CLICKED) {
+    gd.beep();
+
     int index = findObjectImgIndex(obj);
     if (index == -1) return; // some thing wrong
 
@@ -159,6 +166,8 @@ void updateListFileFolder(String cd) {
     objFileFolderListName[i] = "";
   }
 
+  objFileFolderListCount = 0;
+
   static lv_style_t txt_file_folder_name_style;
   lv_style_copy(&txt_file_folder_name_style, &lv_style_plain);
   txt_file_folder_name_style.text.color = lv_color_hex(0x1C2833);
@@ -169,12 +178,13 @@ void updateListFileFolder(String cd) {
     File entry = dir.openNextFile();
     if (!entry) break;
     if (!entry.isDirectory()) {
-      if (!String(entry.name()).endsWith(".gcode")) continue;
+      if (!String(entry.name()).endsWith(".GCO")) continue;
     }
 
     objImgFileFolderList[i] = lv_img_create(pageFolderFileList, NULL);
     lv_img_set_src(objImgFileFolderList[i], entry.isDirectory() ? &folder_icon : &file_icon);
     lv_obj_align(objImgFileFolderList[i], NULL, LV_ALIGN_IN_TOP_LEFT, 60 + ((i % 4) * 180), 30 + ((i / 4) * 180));
+    lv_obj_set_click(objImgFileFolderList[i], true);
     lv_obj_set_event_cb(objImgFileFolderList[i], entry.isDirectory() ? folder_cb : file_cb);
 
     objLabelFileFolderList[i] = lv_label_create(pageFolderFileList, NULL);
@@ -184,6 +194,7 @@ void updateListFileFolder(String cd) {
     lv_label_set_text(objLabelFileFolderList[i], entry.name());
     lv_obj_set_size(objLabelFileFolderList[i], 128, 40);
     lv_obj_align(objLabelFileFolderList[i], NULL, LV_ALIGN_IN_TOP_LEFT, 60 + ((i % 4) * 180), 160 + ((i / 4) * 180));
+    lv_obj_set_click(objLabelFileFolderList[i], true);
     lv_obj_set_event_cb(objLabelFileFolderList[i], entry.isDirectory() ? folder_cb : file_cb);
 
     objFileFolderListName[i] = entry.name();
@@ -192,6 +203,7 @@ void updateListFileFolder(String cd) {
 
     i++;
   }
+  dir.close();
 
   objFileFolderListCount = i;
 }
