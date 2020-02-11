@@ -1,0 +1,6 @@
+{
+    "board": "Maixduino:k210:ioxgd4",
+    "configuration": "toolsloc=default,clksrc=400,burn_baudrate=2000000,burn_tool_firmware=dan",
+    "port": "COM9",
+    "sketch": "GCTRL_Firmware.ino"
+}
