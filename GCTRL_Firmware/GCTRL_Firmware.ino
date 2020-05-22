@@ -38,13 +38,14 @@ void lv_load_page(lv_obj_t* page) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(100);
   Serial.println("Runing.");
 
   gd.begin(SETUP_LVGL|SETUP_BUZZER);
 
   setupStepper();
+  penUp();
 
   welcome_page();
   home_page();
@@ -66,13 +67,56 @@ void setup() {
   }, "mainTask", 256, NULL, 1, NULL);
 
   xTaskCreateAtProcessor(0, [](void*) {
+    char line[100];
+    int lineIndex = 0;
+    bool lineIsComment = false, lineSemiColon = false;
+    while(1) {
+      while(Serial.available() > 0) {
+        char c = Serial.read();
+        if ((c == '\n') || (c == '\r')) {             // End of line reached
+          if (lineIndex > 0) {                        // Line is complete. Then execute!
+            line[ lineIndex ] = '\0';                   // Terminate string
+
+            processIncomingLine( line, lineIndex );
+            lineIndex = 0;
+          }
+          lineIsComment = false;
+          lineSemiColon = false;
+          Serial.println("ok");
+        } else {
+          if ((lineIsComment) || (lineSemiColon)) {   // Throw away all comment characters
+            if (c == ')')  lineIsComment = false;     // End of comment. Resume line.
+          } else {
+            if (c <= ' ') {                           // Throw away whitepace and control characters
+            } else if (c == '/') {                    // Block delete not supported. Ignore character.
+            } else if (c == '(') {                    // Enable comments flag and ignore all characters until ')' or EOL.
+              lineIsComment = true;
+            } else if (c == ';') {
+              lineSemiColon = true;
+            } else if (lineIndex >= sizeof(line) - 1) {
+              Serial.println( "ERROR - lineBuffer overflow" );
+              lineIsComment = false;
+              lineSemiColon = false;
+            } else if (c >= 'a' && c <= 'z') {        // Upcase lowercase
+              line[lineIndex++] = c - 'a' + 'A';
+            } else {
+              line[lineIndex++] = c;
+            }
+          }
+        }
+      }
+      vTaskDelay(1 / portTICK_PERIOD_MS);
+    }
+  }, "serialTask", 256, NULL, 1, NULL);
+
+  xTaskCreateAtProcessor(0, [](void*) {
     while (1) {
       loop();
     }
   }, "loopTask", 1024, NULL, 1, NULL);
 
   lv_load_page(welcomeScreen);
-
+  
   gd.startFreeRTOS();
 }
 
@@ -103,6 +147,11 @@ void loop() {
   }
   if (showPage == processScreen) {
     if (!pageDidMount) {
+      lv_obj_set_hidden(btnCancel, false);
+      lv_obj_set_hidden(txtDoing, false);
+      lv_obj_set_hidden(img1, true);
+      lv_obj_set_hidden(txtOK, true);
+
       File myFile = SD.open(filePath);
       if (myFile) {
         gcode_do_job_file(myFile, previewFlag, &cancelFlag, [](int progress) {
@@ -116,6 +165,7 @@ void loop() {
 
       if (cancelFlag) {
         lv_load_page(previewScreen);
+        cancelFlag = false;
       } else {
         lv_obj_set_hidden(btnCancel, true);
         lv_obj_set_hidden(txtDoing, true);

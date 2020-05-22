@@ -11,6 +11,12 @@ void stepperEnable(bool en) {
   digitalWrite(STEPY_EN_PIN, en ? LOW : HIGH);
 }
 
+int runStepX = 0;
+int ruSpeedX = 0;
+
+int runStepY = 0;
+int ruSpeedY = 0;
+
 void setupStepper() {
   pinMode(STEPX_STEP_PIN, OUTPUT);
   pinMode(STEPX_DIR_PIN, OUTPUT);
@@ -68,13 +74,6 @@ void moveMotorYOneStep(int dir) {
 // Servo position for Up and Down
 const int penZUp = 65;
 const int penZDown = 90;
-// Servo on PWM pin 10
-const int penServoPin = 10 ;
-// Should be right for DVD steppers, but is not too important here
-const int stepsPerRevolution = 48;
-// create servo object to control a servo
-// Servo penServo;
-// Initialize steppers for X- and Y-axis using this Arduino pins for the L293D H-bridge
 
 /* Structures, global variables    */
 struct point {
@@ -85,7 +84,6 @@ struct point {
 // Current position of plothead
 struct point actuatorPos;
 //  Drawing settings, should be OK
-float StepInc = 1;
 int StepDelay = 0;
 int LineDelay = 0;
 int penDelay = 50;
@@ -165,7 +163,8 @@ void processIncomingLine( char* line, int charNB ) {
               // indexY = '\0';
               newPos.x = atof( indexX + 1);
             }
-            drawLine(newPos.x, newPos.y );
+            // drawLine(newPos.x, newPos.y );
+            moveTo(newPos.x, newPos.y);
             //        Serial.println("ok");
             actuatorPos.x = newPos.x;
             actuatorPos.y = newPos.y;
@@ -317,7 +316,7 @@ void drawLine(float x1, float y1) {
 }
 //  Raises pen
 void penUp() {
-  //penServo.write(penZUp);
+  servoWrite(penZUp);
   delay(penDelay);
   Zpos = Zmax;
   if (verbose) {
@@ -327,12 +326,57 @@ void penUp() {
 }
 //  Lowers pen
 void penDown() {
-  //penServo.write(penZDown);
+  servoWrite(penZDown);
   delay(penDelay);
   Zpos = Zmin;
   if (verbose) {
     Serial.println("Pen down.");
-
-
   }
+}
+
+void moveTo(float x, float y) {
+  static float beforeX = 0;
+  static float beforeY = 0;
+
+  x = x > Xmax ? Xmax : x;
+  x = x < Xmin ? Xmin : x;
+  y = y > Ymax ? Ymax : y;
+  y = y < Ymin ? Ymin : y;
+
+  int stepX = abs(beforeX - x) * StepsPerMillimeterX;
+  int stepY = abs(beforeY - y) * StepsPerMillimeterY;
+
+  int sx = beforeX < x ? 1 : 0;
+  int sy = beforeY < y ? 1 : 0;
+
+  stepperEnable(true);
+  digitalWrite(STEPX_DIR_PIN, sx);
+  digitalWrite(STEPY_DIR_PIN, sy);
+
+  taskENTER_CRITICAL();
+  if (stepX > stepY) {
+    for (int i=0;i<stepX;i++) {
+      moveMotorXOneStep(sx);
+      if (i < stepY) {
+        moveMotorYOneStep(sy);
+      }
+      // delay(StepDelay);
+    }
+  } else {
+    for (int i=0;i<stepY;i++) {
+      moveMotorYOneStep(sy);
+      if (i < stepX) {
+        moveMotorXOneStep(sx);
+      }
+      // delay(StepDelay);
+    }
+  }
+  taskEXIT_CRITICAL();
+  // stepperEnable(false);
+  
+  //  Delay before any next lines are submitted
+  delay(LineDelay);
+  //  Update the positions
+  beforeX = x;
+  beforeY = y;
 }

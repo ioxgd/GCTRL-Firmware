@@ -42,7 +42,7 @@ void control_page() {
   
   btn1 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn1, [](lv_obj_t* obj, lv_event_t event) {
-    if(event == LV_EVENT_CLICKED) {
+    if(event == LV_EVENT_CLICKED || event == LV_EVENT_LONG_PRESSED_REPEAT) {
       gd.beep();
       moveMotorX(100, 0, 80);
     }
@@ -85,7 +85,7 @@ void control_page() {
   
   btn2 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn2, [](lv_obj_t* obj, lv_event_t event) {
-    if(event == LV_EVENT_CLICKED) {
+    if(event == LV_EVENT_CLICKED || event == LV_EVENT_LONG_PRESSED_REPEAT) {
       gd.beep();
       moveMotorX(100, 1, 80);
     }
@@ -128,7 +128,7 @@ void control_page() {
   
   btn3 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn3, [](lv_obj_t* obj, lv_event_t event) {
-    if(event == LV_EVENT_CLICKED) {
+    if(event == LV_EVENT_CLICKED || event == LV_EVENT_LONG_PRESSED_REPEAT) {
       gd.beep();
       moveMotorY(100, 0, 80);
     }
@@ -171,7 +171,7 @@ void control_page() {
   
   btn4 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn4, [](lv_obj_t* obj, lv_event_t event) {
-    if(event == LV_EVENT_CLICKED) {
+    if(event == LV_EVENT_CLICKED || event == LV_EVENT_LONG_PRESSED_REPEAT) {
       gd.beep();
       moveMotorY(100, 1, 80);
     }
@@ -215,7 +215,7 @@ void control_page() {
   btn5 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn5, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
+      penUp();
       gd.beep();
     }
   });
@@ -258,7 +258,7 @@ void control_page() {
   btn6 = lv_btn_create(controlScreen, NULL);
   lv_obj_set_event_cb(btn6, [](lv_obj_t* obj, lv_event_t event) {
     if(event == LV_EVENT_CLICKED) {
-      
+      penDown();
       gd.beep();
     }
   });

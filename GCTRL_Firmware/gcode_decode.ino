@@ -4,6 +4,11 @@ float minY = 999999999.9;
 float maxY = -999999999.9;
 
 void gcode_get_image_size(char *gcode, float *width, float *height) {
+  minX = 999999999.9;
+  maxX = -999999999.9;
+  minY = 999999999.9;
+  maxY = -999999999.9;
+  
   char line_buff[500];
   int index = 0, line_buff_index = 0;
   bool commentFlag = false;
@@ -76,14 +81,22 @@ void gcode_get_image_size(char *gcode, float *width, float *height) {
 void gcode_get_image_size_file(File myFile, float *width, float *height) {
   myFile.seek(0);
 
+  minX = 999999999.9;
+  maxX = -999999999.9;
+  minY = 999999999.9;
+  maxY = -999999999.9;
+
   char line_buff[500];
   int line_buff_index = 0;
   bool commentFlag = false;
   bool penDownFlag = false;
   float lastX = 0, lastY = 0;
   Serial.println("gcode_get_image_size_file...");
+  taskENTER_CRITICAL();
+  myFile.seek(0);
   while (myFile.available()) {
     char c = myFile.read();
+
     if (c == '\r') continue;
 
     if (c == '\n') {
@@ -91,7 +104,7 @@ void gcode_get_image_size_file(File myFile, float *width, float *height) {
 
       if (strlen(line_buff) == 0) continue;
 
-      Serial.println(line_buff);
+      // Serial.println(line_buff);
 
       char cmd;
       int cmdCode;
@@ -141,7 +154,8 @@ void gcode_get_image_size_file(File myFile, float *width, float *height) {
       line_buff[line_buff_index++] = c;
     }
   }
-
+  taskEXIT_CRITICAL();
+  
   *width = abs(maxX - minX);
   *height = abs(maxY - minY);
 }
@@ -306,13 +320,6 @@ void gcode_drew_line_file(File myFile, lv_obj_t *objCanvas) {
   static lv_point_t *points[LINE_BUFFER_SIZE];
 
   lv_obj_clean(objCanvas);
-  /*
-  for (int i=0;i<LINE_OBJ_BUFFER_SIZE;i++) {
-    if (line[i]) {
-      lv_obj_del(line[i]);
-      line[i] = 0;
-    }
-  }*/
   for (int i=0;i<LINE_BUFFER_SIZE;i++) {
     if (points[i]) free(points[i]);
   }
@@ -328,9 +335,11 @@ void gcode_drew_line_file(File myFile, lv_obj_t *objCanvas) {
   bool penDownFlag = false;
   float lastX = 0, lastY = 0;
   Serial.println("gcode_drew_line_file...");
+  taskENTER_CRITICAL();
   myFile.seek(0);
   while (myFile.available()) {
     char c = myFile.read();
+    
     if (c == '\r') continue;
 
     if (c == '\n') {
@@ -338,7 +347,7 @@ void gcode_drew_line_file(File myFile, lv_obj_t *objCanvas) {
 
       if (strlen(line_buff) == 0) continue;
 
-      Serial.println(line_buff);
+      // Serial.println(line_buff);
 
       char cmd;
       int cmdCode;
@@ -360,10 +369,10 @@ void gcode_drew_line_file(File myFile, lv_obj_t *objCanvas) {
 
             memset(points_buff, 0, sizeof(lv_point_t) * LINE_POINTS_BUFFER_SIZE);
 
-            line[points_index] = lv_line_create(objCanvas, NULL);
-            lv_line_set_points(line[points_index], points[points_index], line_points_index);
-            lv_line_set_style(line[points_index], LV_LINE_STYLE_MAIN, &style_line);
-            lv_obj_align(line[points_index], NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+            lv_obj_t *line = lv_line_create(objCanvas, NULL);
+            lv_line_set_points(line, points[points_index], line_points_index);
+            lv_line_set_style(line, LV_LINE_STYLE_MAIN, &style_line);
+            lv_obj_align(line, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
             points_index++;
             line_points_index = 0;
@@ -406,6 +415,7 @@ void gcode_drew_line_file(File myFile, lv_obj_t *objCanvas) {
       line_buff[line_buff_index++] = c;
     }
   }
+  taskEXIT_CRITICAL();
 }
 
 void gcode_do_job(char *gcode, bool preview, void (*callback_on_process)()) {
@@ -457,6 +467,7 @@ void gcode_do_job_file(File myFile, bool preview, bool *cancel, void (*callback_
       
       if (callback_on_process) callback_on_process((((float)myFile.size() - (float)myFile.available()) / (float)myFile.size()) * 100.0);
       processIncomingLine(line_buff, line_buff_index);
+      delay(1);
 
       line_buff_index = 0;
       memset(line_buff, 0, 500);
